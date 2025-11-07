@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Cloudflare AI Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root { color-scheme: dark; }
+      body { font-family: system-ui, Arial; margin: 0; background: #0b0c10; color: #e5e7eb; }
+      .container { max-width: 800px; margin: 0 auto; padding: 16px; }
+      .chat { background: #111318; border-radius: 10px; padding: 12px; height: 70vh; overflow: auto; }
+      .msg { margin: 8px 0; white-space: pre-wrap; }
+      .user { color: #93c5fd; }
+      .assistant { color: #fcd34d; }
+      form { display: flex; gap: 8px; margin-top: 12px; }
+      input, button, textarea { padding: 10px; border-radius: 8px; border: 1px solid #333; background: #0f1115; color: #fff; }
+      textarea { width: 100%; box-sizing: border-box; }
+      button { background: #2563eb; border: none; cursor: pointer; }
+      button:disabled { opacity: 0.6; cursor: not-allowed; }
+      .sys { width: 100%; margin-bottom: 8px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Cloudflare Workers AI Chat (Llama 3.3)</h2>
+      <textarea id="system" class="sys" rows="2" placeholder="Optional system prompt..."></textarea>
+      <div id="chat" class="chat"></div>
+      <form id="form">
+        <input id="input" placeholder="Say something..." autocomplete="off" />
+        <button id="send" type="submit">Send</button>
+      </form>
+    </div>
+    <script src="/app.js"></script>
+  </body>
+  </html>
+
