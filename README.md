@@ -1,6 +1,19 @@
 # Cloudflare Workers AI Chat
 
-An AI-powered chat app running on Cloudflare Workers with Durable Objects state and a tiny static frontend. Production-ready defaults with a local mock for fast iteration.
+An AI-powered chat app on Cloudflare Workers using Durable Objects for state and a tiny static UI. Ships with production-ready defaults plus a local mock for quick iteration.
+
+## Contents
+
+- Features
+- Project Structure
+- Quickstart
+- Configuration
+- Model Selection
+- API (with curl)
+- Local vs Remote Dev
+- Troubleshooting / FAQ
+- Architecture
+- Roadmap
 
 ## Features
 
@@ -26,21 +39,17 @@ npm i -g wrangler
 wrangler login
 ```
 
-2) Run locally (mocked AI)
+2) Dev options
 
 ```bash
+# Local (no AI; mocked replies)
 wrangler dev --local
-# Open the URL and chat — replies are mocked so you can iterate fast.
-```
 
-3) Remote dev (real Workers AI)
-
-```bash
+# Remote (real Workers AI)
 wrangler dev
-# If prompted, register a workers.dev subdomain in the Dashboard.
 ```
 
-4) Deploy
+3) Deploy
 
 ```bash
 wrangler deploy
@@ -55,7 +64,7 @@ wrangler deploy
 
 ## Model Selection
 
-Default is set in `wrangler.toml`:
+Default in `wrangler.toml`:
 
 ```toml
 [vars]
@@ -69,7 +78,7 @@ wrangler dev --var MODEL="@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 wrangler deploy --var MODEL="@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 ```
 
-If a model isn’t available in your account/region, the app tries these fallbacks automatically:
+If a model isn’t available in your account/region, the app falls back to:
 
 - `@cf/meta/llama-3.1-70b-instruct` (default)
 - `@cf/meta/llama-3.1-8b-instruct`
@@ -77,18 +86,18 @@ If a model isn’t available in your account/region, the app tries these fallbac
 - `@cf/meta/llama-3.2-3b-instruct`
 - `@cf/mistral/mistral-7b-instruct-v0.2`
 
-List and test models with Wrangler:
+List and test models:
 
 ```bash
 wrangler ai models list
 wrangler ai run @cf/meta/llama-3.1-70b-instruct --input "hello"
 ```
 
-## API
+## API (with curl)
 
-`POST /api/chat`
+- `POST /api/chat`
 
-Request body
+Request:
 
 ```json
 {
@@ -98,23 +107,43 @@ Request body
 }
 ```
 
-Response body
+Response:
 
 ```json
 { "reply": "…assistant text…" }
 ```
 
-## Troubleshooting
+Curl example (replace URL with your worker):
 
-- Remote dev requires a workers.dev subdomain
-  - Register in Dashboard → Workers & Pages → Overview, or use `wrangler dev --local`.
+```bash
+curl -s https://<name>.<subdomain>.workers.dev/api/chat \
+  -H 'content-type: application/json' \
+  -d '{"sessionId":"demo","message":"Hello"}' | jq
+```
 
-- 5007: No such model / task
-  - List models with `wrangler ai models list` and select one available to you.
-  - Set a working model via `MODEL` or rely on built-in fallbacks.
+## Local vs Remote Dev
+
+- Local: `wrangler dev --local`
+  - Uses a mock assistant reply; Durable Object state still works.
+
+- Remote: `wrangler dev`
+  - Requires a workers.dev subdomain; uses real Workers AI.
+
+## Troubleshooting / FAQ
+
+- Remote dev asks for a subdomain
+  - Register one in Dashboard → Workers & Pages → Overview, or use `--local`.
+
+- “No such model / task” (error 5007)
+  - List models: `wrangler ai models list`
+  - Test: `wrangler ai run <model-id> --input "hello"`
+  - Set a working model via `MODEL` or rely on fallbacks.
 
 - Free plan Durable Objects
-  - This project uses `new_sqlite_classes` in migrations (required on free plan).
+  - This repo uses `new_sqlite_classes` in the first migration as required.
+
+- How much context is kept?
+  - The DO stores the last 30 user/assistant turns per session.
 
 ## Architecture
 
@@ -124,11 +153,8 @@ Frontend → /api/chat (Worker) → Durable Object (per session)
                               ↳ DO storage (rolling memory)
 ```
 
-## Notes & Roadmap
+## Roadmap
 
-- Keeps the last 30 turns per session to bound context.
-- Easy upgrades:
-  - Streaming replies (SSE) from Workers AI
-  - Voice input (STT endpoint) → same DO flow
-  - RAG with Vectorize for long‑term memory
-
+- Streaming replies (SSE) from Workers AI
+- Voice input (STT endpoint) → same DO flow
+- RAG with Vectorize for long‑term memory
